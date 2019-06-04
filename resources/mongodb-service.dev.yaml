@@ -24,7 +24,7 @@ spec:
       labels:
         role: mongo
         environment: test
-        replicaset: MainRepSet
+        replicaset: omicsrs
     spec:
       affinity:
         podAntiAffinity:
@@ -36,7 +36,7 @@ spec:
                 - key: replicaset
                   operator: In
                   values:
-                  - MainRepSet
+                  - omicsrs
               topologyKey: kubernetes.io/hostname
       terminationGracePeriodSeconds: 10
       volumes:
@@ -46,8 +46,18 @@ spec:
             defaultMode: 256
       containers:
         - name: mongod-container
-          #image: pkdone/mongo-ent:3.4
-          image: mongo
+          env:
+            - name: DDI_MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: omicsdi
+                  key: MONGO_USER
+            - name: DDI_MONGO_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: omicsdi
+                  key: MONGO_PASSWD
+          image: mongo:3.6.12
           command:
             - "numactl"
             - "--interleave=all"
@@ -57,7 +67,7 @@ spec:
             - "--bind_ip"
             - "0.0.0.0"
             - "--replSet"
-            - "MainRepSet"
+            - "omicsrs"
             - "--auth"
             - "--clusterAuthMode"
             - "keyFile"
@@ -79,12 +89,24 @@ spec:
               mountPath: /data/db
   volumeClaimTemplates:
   - metadata:
-      name: mongodb-persistent-storage-claim
-      annotations:
-        volume.beta.kubernetes.io/storage-class: "standard"
+      name: mongodb-persistent-storage-claim    
     spec:
+      storageClassName: nfs-client
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
           storage: 1Gi
-
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-nodeport
+  labels:
+    name: mongo-nodeport
+spec:
+  type: NodePort
+  ports:
+  - port: 27017
+    targetPort: 27017  
+  selector:    
+    statefulset.kubernetes.io/pod-name: mongod-0

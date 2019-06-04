@@ -3,20 +3,41 @@
 # Script to deploy a Kubernetes project with a StatefulSet running a MongoDB Replica Set, to a local Minikube environment.
 ##
 
+if [[ $# -eq 0 ]] ; then
+    echo 'You must provide one argument for the environment to be created'
+    echo '  Usage:  generate.sh dev'
+    echo
+    exit 1
+fi
+
 # Create keyfile for the MongoD cluster as a Kubernetes shared secret
 TMPFILE=$(mktemp)
+ENV="${1}"
+CREDENTIAL_ARGS=""
+
+if [[ "${ENV}" != "local" ]]; then
+    if [[ -z "${KUBECONFIG}" ]]; then
+        echo "You must set the kubernetes config file path before run it in prod cluster instance"
+        echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
+        echo
+        exit 1
+    else
+        CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"        
+    fi
+fi  
+
 /usr/bin/openssl rand -base64 741 > $TMPFILE
-kubectl create secret generic shared-bootstrap-data --from-file=internal-auth-mongodb-keyfile=$TMPFILE
+kubectl $CREDENTIAL_ARGS create secret generic shared-bootstrap-data --from-file=internal-auth-mongodb-keyfile=$TMPFILE --namespace=$ENV
 rm $TMPFILE
 
 # Create mongodb service with mongod stateful-set
 # TODO: Temporarily added no-valudate due to k8s 1.8 bug: https://github.com/kubernetes/kubernetes/issues/53309
-kubectl apply -f ../resources/mongodb-service.yaml --validate=false
+kubectl $CREDENTIAL_ARGS apply -f ../resources/mongodb-service.$ENV.yaml --validate=true --namespace=$ENV
 sleep 5
 
 # Print current deployment state (unlikely to be finished yet)
-kubectl get all 
-kubectl get persistentvolumes
+kubectl $CREDENTIAL_ARGS get all --namespace=$ENV
+kubectl $CREDENTIAL_ARGS get persistentvolumes --namespace=$ENV
 echo
 echo "Keep running the following command until all 'mongod-n' pods are shown as running:  kubectl get all"
 echo

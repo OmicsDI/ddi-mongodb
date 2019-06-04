@@ -46,7 +46,17 @@ spec:
             defaultMode: 256
       containers:
         - name: mongod-container
-          #image: pkdone/mongo-ent:3.4
+          env:
+            - name: DDI_MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: omicsdi
+                  key: MONGO_USER
+            - name: DDI_MONGO_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: omicsdi
+                  key: MONGO_PASSWD
           image: mongo:3.6.12
           command:
             - "numactl"

@@ -9,9 +9,9 @@
 ##
 
 # Check for password argument
-if [[ $# -eq 0 ]] ; then
-    echo 'You must provide one argument for the environment to be created'
-    echo '  Usage:  configure.sh dev'
+if [[ $# -lt 2 ]] ; then
+    echo 'You must provide two arguments, one for the environment and the other for the number of replicas'
+    echo '  Usage:  configure.sh dev 1'
     echo
     exit 1
 fi
@@ -30,10 +30,18 @@ if [[ ${ENV} != "local" ]]; then
     fi
 fi  
 
+COUNTER=0
+MEMBER_SET=""
+SERVICE="mongodb-service.${ENV}.svc.cluster.local:27017"
+while [  $COUNTER -lt ${2} ]; do
+    MEMBER_SET='{_id: '"${COUNTER}"', host: "mongod-'"${COUNTER}"'.'"${SERVICE}"'"},'"${MEMBER_SET}"
+    let COUNTER=COUNTER+1 
+done
+
+
 # Initiate replica set configuration
 echo "Configuring the MongoDB Replica Set"
-SERVICE="mongodb-service.${ENV}.svc.cluster.local:27017"
-kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- mongo --eval 'rs.initiate({_id: "omicsrs", version: 1, members: [ {_id: 0, host: "mongod-0.'"${SERVICE}"'"}, {_id: 1, host: "mongod-1.'"${SERVICE}"'"}, {_id: 2, host: "mongod-2.'"${SERVICE}"'"} ]});'
+kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- mongo --eval 'rs.initiate({_id: "omicsrs", version: 1, members: [ '"${MEMBER_SET%?}"' ]});'
 
 # Wait a bit until the replica set should have a primary ready
 echo "Waiting for the Replica Set to initialise..."
@@ -41,6 +49,6 @@ sleep 30
 kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- mongo --eval 'rs.status();'
 
 # Create the admin user (this will automatically disable the localhost exception)
-kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- bash -c 'mongo --eval "db.getSiblingDB(\"admin\").createUser({user:\"$DDI_MONGO_USER\",pwd:\"$DDI_MONGO_PASSWD\",roles:[{role:\"root\",db:\"admin\"}]});"'
+kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- bash -c 'mongo --eval "db.getSiblingDB(\"admin\").createUser({user:\"$DDI_MONGO_USER\",pwd:\"$DDI_MONGO_PASSWD\",roles:[{role:\"root\",db:\"admin"}]});"'
 echo
 

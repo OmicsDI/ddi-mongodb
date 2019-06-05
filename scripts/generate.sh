@@ -3,7 +3,7 @@
 # Script to deploy a Kubernetes project with a StatefulSet running a MongoDB Replica Set, to a local Minikube environment.
 ##
 
-if [[ $# -eq 0 ]] ; then
+if [ $# -eq 0 ] ; then
     echo 'You must provide one argument for the environment to be created'
     echo '  Usage:  generate.sh dev'
     echo
@@ -15,8 +15,8 @@ TMPFILE=$(mktemp)
 ENV="${1}"
 CREDENTIAL_ARGS=""
 
-if [[ "${ENV}" != "local" ]]; then
-    if [[ -z "${KUBECONFIG}" ]]; then
+if [ "${ENV}" != "local" ]; then
+    if [ -z "${KUBECONFIG}" ]; then
         echo "You must set the kubernetes config file path before run it in prod cluster instance"
         echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
         echo

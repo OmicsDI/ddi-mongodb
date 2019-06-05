@@ -9,7 +9,7 @@
 ##
 
 # Check for password argument
-if [[ $# -lt 2 ]] ; then
+if [ $# -lt 2 ] ; then
     echo 'You must provide two arguments, one for the environment and the other for the number of replicas'
     echo '  Usage:  configure.sh dev 1'
     echo
@@ -19,8 +19,8 @@ fi
 ENV="${1}"
 CREDENTIAL_ARGS=""
 
-if [[ ${ENV} != "local" ]]; then
-    if [[ -z "${KUBECONFIG}" ]]; then        
+if [ ${ENV} != "local" ]; then
+    if [ -z "${KUBECONFIG}" ]; then        
         echo "You must set the kubernetes config file path before run it in prod cluster instance"
         echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
         echo

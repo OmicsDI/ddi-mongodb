@@ -3,7 +3,7 @@
 # Script to just deploy the MongoDB Service & StatefulSet back onto the exising Kubernetes cluster.
 ##
 
-if [[ $# -eq 0 ]] ; then
+if [ $# -eq 0 ] ; then
     echo 'You must provide one argument for the environment to be created'
     echo '  Usage:  recreate_service.sh dev'
     echo
@@ -13,8 +13,8 @@ fi
 ENV="${1}"
 CREDENTIAL_ARGS=""
 
-if [[ ${ENV} != "local" ]]; then
-    if [[ -z "${KUBECONFIG}" ]]; then
+if [ ${ENV} != "local" ]; then
+    if [ -z "${KUBECONFIG}" ]; then
         echo "You must set the kubernetes config file path before run it in prod cluster instance"
         echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
         echo

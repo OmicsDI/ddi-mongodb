@@ -49,6 +49,6 @@ sleep 30
 kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- mongo --eval 'rs.status();'
 
 # Create the admin user (this will automatically disable the localhost exception)
-kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- bash -c 'mongo --eval "db.getSiblingDB(\"admin\").createUser({user:\"$DDI_MONGO_USER\",pwd:\"$DDI_MONGO_PASSWD\",roles:[{role:\"root\",db:\"admin"}]});"'
+kubectl $CREDENTIAL_ARGS exec mongod-0 -c mongod-container --namespace=$ENV -- bash -c 'mongo --eval "db.getSiblingDB(\"admin\").createUser({user:\"$DDI_MONGO_USER\",pwd:\"$DDI_MONGO_PASSWD\",roles:[{role:\"root\",db:\"admin\"}]});"'
 echo
 

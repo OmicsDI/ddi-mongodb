@@ -13,16 +13,12 @@ fi
 ENV="${1}"
 CREDENTIAL_ARGS=""
 
-if [ ${ENV} != "local" ]; then
-    if [ -z "${KUBECONFIG}" ]; then
-        echo "You must set the kubernetes config file path before run it in prod cluster instance"
-        echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
-        echo
-        exit 1
-    else
-        CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"        
-    fi
-fi  
+if [[ -z "${KUBECONFIG}" ]]; then        
+    echo "No KUBECONFIG env found."
+else
+    echo "KUBECONFIG set to ${KUBECONFIG}"
+    CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"
+fi
 
 # Delete mongod stateful set + mongodb service + secrets + host vm configuer daemonset
 kubectl $CREDENTIAL_ARGS delete statefulsets mongod --namespace=$ENV
@@ -34,3 +30,6 @@ sleep 3
 # Delete persistent volume claims
 kubectl $CREDENTIAL_ARGS delete persistentvolumeclaims -l role=mongo --namespace=$ENV
 
+if [ "$ENV" = "local" ] ; then
+    kubectl $CREDENTIAL_ARGS delete persistentvolume task-pv-volume --namespace=$ENV
+fi

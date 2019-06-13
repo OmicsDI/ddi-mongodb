@@ -12,13 +12,28 @@ spec:
   selector:
     role: mongo
 ---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
   name: mongod
 spec:
   serviceName: mongodb-service
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
@@ -58,9 +73,7 @@ spec:
                   name: omicsdi
                   key: MONGO_PASSWD
           image: mongo:3.6.12
-          command:
-            - "numactl"
-            - "--interleave=all"
+          command:            
             - "mongod"
             - "--wiredTigerCacheSizeGB"
             - "0.1"
@@ -77,7 +90,7 @@ spec:
             - "authenticationMechanisms=SCRAM-SHA-1"
           resources:
             requests:
-              cpu: 0.2
+              cpu: 0.6
               memory: 200Mi
           ports:
             - containerPort: 27017
@@ -90,8 +103,7 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: mongodb-persistent-storage-claim    
-    spec:
-      storageClassName: nfs-client
+    spec:            
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:

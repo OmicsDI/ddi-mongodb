@@ -15,16 +15,12 @@ TMPFILE=$(mktemp)
 ENV="${1}"
 CREDENTIAL_ARGS=""
 
-if [ "${ENV}" != "local" ]; then
-    if [ -z "${KUBECONFIG}" ]; then
-        echo "You must set the kubernetes config file path before run it in prod cluster instance"
-        echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
-        echo
-        exit 1
-    else
-        CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"        
-    fi
-fi  
+if [[ -z "${KUBECONFIG}" ]]; then        
+    echo "No KUBECONFIG env found."
+else
+    echo "KUBECONFIG set to ${KUBECONFIG}"
+    CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"
+fi
 
 /usr/bin/openssl rand -base64 741 > $TMPFILE
 kubectl $CREDENTIAL_ARGS create secret generic shared-bootstrap-data --from-file=internal-auth-mongodb-keyfile=$TMPFILE --namespace=$ENV
@@ -39,6 +35,6 @@ sleep 5
 kubectl $CREDENTIAL_ARGS get all --namespace=$ENV
 kubectl $CREDENTIAL_ARGS get persistentvolumes --namespace=$ENV
 echo
-echo "Keep running the following command until all 'mongod-n' pods are shown as running:  kubectl get all"
+echo "Keep running the following command until all 'mongod-n' pods are shown as running:  kubectl get pods --namespace=$ENV"
 echo
 

@@ -13,16 +13,12 @@ fi
 ENV="${1}"
 CREDENTIAL_ARGS=""
 
-if [ ${ENV} != "local" ]; then
-    if [ -z "${KUBECONFIG}" ]; then
-        echo "You must set the kubernetes config file path before run it in prod cluster instance"
-        echo "i.e. export KUBECONFIG=/path/to/your-kubeconfig.yml"
-        echo
-        exit 1
-    else
-        CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"        
-    fi
-fi  
+if [[ -z "${KUBECONFIG}" ]]; then        
+    echo "No KUBECONFIG env found."
+else
+    echo "KUBECONFIG set to ${KUBECONFIG}"
+    CREDENTIAL_ARGS="--kubeconfig ${KUBECONFIG}"
+fi
 
 # Show persistent volume claims are still reserved even though mongod stateful-set not deployed
 kubectl $CREDENTIAL_ARGS get persistentvolumes --namespace=$ENV

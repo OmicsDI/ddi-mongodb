@@ -1,3 +1,6 @@
+
+***** storage class should be according to the cluster previously for embassy it was nfs-client but openstack it is default cindy storage 
+
 # MongoDB Deployment Demo for Kubernetes on Minikube (i.e. running on local workstation)
 
 An example project demonstrating the deployment of a MongoDB Replica Set via Kubernetes on Minikube (Kubernetes running locally on a workstation). Contains example Kubernetes YAML resource files (in the 'resource' folder) and associated Kubernetes based Bash scripts (in the 'scripts' folder) to configure the environment and deploy a MongoDB Replica Set.
